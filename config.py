@@ -1,4 +1,5 @@
 from contract import Contract
+import json
 
 DOGECHAIN_NODE_URL = 'https://rpc.dogechain.dog'
 
@@ -8,3 +9,6 @@ contracts = {
 
 GAS_DOGE = 21000
 GAS_PRICE = 250
+
+with open('grimace_abi.json', 'r') as f:
+    GRIMACE_ABI = json.load(f)
