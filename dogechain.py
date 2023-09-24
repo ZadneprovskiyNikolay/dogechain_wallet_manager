@@ -12,7 +12,7 @@ from config import DOGECHAIN_NODE_URL, GAS_DOGE, GAS_PRICE, GRIMACE_ABI, contrac
 @click.option('--receiver')
 def sendManyToOne(currency, senders_file, receiver):
     contract = contracts.get(currency, None)
-    if currency != 'doge' and currency is None:
+    if currency != 'doge' and contract is None:
         print('unknown currency')
         return
 
@@ -31,12 +31,12 @@ def sendManyToOne(currency, senders_file, receiver):
         sender = w3.eth.account.from_key(private_key).address
         try:
             if currency == 'doge':            
-                tx_hash = send_doge(w3, sender_private_keys, receiver, gas_price_wei)
+                tx_hash = send_doge(w3, private_key, receiver, gas_price_wei)
             elif currency == 'grimace':        
-                tx_hash = send_grimace(w3, sender_private_keys, receiver, gas_price_wei, contract)        
+                tx_hash = send_grimace(w3, private_key, receiver, gas_price_wei, contract)        
             tx_hashes.append(tx_hash)
         except Exception as e:
-            errors.append(f'{sender}: {e}')
+            errors.append(f'Error {sender}: {e}')
     
     if tx_hashes:
         output_file = f'{currency}_{datetime.now().strftime("%m.%d.%Y_%H.%M.%S")}'
@@ -78,7 +78,8 @@ def send_grimace(w3, private_key, receiver, gas_price_wei, contract) -> list[str
     account = w3.eth.account.from_key(private_key)
     doge_balance = w3.eth.get_balance(account.address)
     comission = GAS_DOGE*gas_price_wei
-    assert doge_balance <= comission
+    if doge_balance >= comission:
+        raise Exception("not enough doge")
 
     grimace_balance = w3_contract.functions.balanceOf(account.address).call()
 
