@@ -78,10 +78,13 @@ def send_grimace(w3, private_key, receiver, gas_price_wei, contract) -> list[str
     account = w3.eth.account.from_key(private_key)
     doge_balance = w3.eth.get_balance(account.address)
     comission = GAS_DOGE*gas_price_wei
-    if doge_balance >= comission:
+    if doge_balance < comission:
         raise Exception("not enough doge")
 
     grimace_balance = w3_contract.functions.balanceOf(account.address).call()
+
+    if grimace_balance == 0:
+        raise Exception("grimace zero balance")
 
     tx = w3_contract.functions.transfer(receiver, grimace_balance).build_transaction({
         'nonce': w3.eth.get_transaction_count(account.address),
